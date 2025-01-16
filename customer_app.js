@@ -47,10 +47,16 @@ app.post("/api/login", async (req, res, next) => {
     if (!user) {
       throw new InvalidUserError("No such user in database");
     }
-    if (user.password !== password) {
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new AuthenticationFailed("Passwords don't match");
     }
-    res.send("User Logged In");
+
+    const token = jwt.sign({ user_name: user.user_name }, SECRET_KEY, { expiresIn: "1h" });
+
+    res.json({ message: "User Logged In", token })
+    
   } catch (error) {
     next(error);
   }
