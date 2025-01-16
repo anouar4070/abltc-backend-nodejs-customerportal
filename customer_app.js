@@ -35,7 +35,26 @@ app.use("/static", express.static(path.join(".", "frontend")));
 // Middleware to handle URL-encoded form data
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// POST endpoint for user login
+// Middleware to authenticate JWT token
+const authenticateToken = (req, res, next) => {
+    const token = req.header('Authorization')?.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ message: "Access Denied: No token provided." });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.status(403).json({ message: "Invalid or expired token." });
+        req.user = user;
+        next();
+    });
+};
+
+// Protected route example
+app.get('/api/protected', authenticateToken, (req, res) => {
+    res.json({ message: "Welcome to the protected route!", user: req.user });
+});
+
 // POST endpoint for user login
 app.post("/api/login", async (req, res, next) => {
   const data = req.body;
