@@ -6,6 +6,11 @@ const Schema = mongoose.Schema;
 
 // Defining a schema for the 'customers' collection in MongoDB.
 const customersSchema = new Schema({
+    name: {
+        type: String,
+        required: true
+    },
+
     // Field for storing the user's name as a string.
     user_name: {
         type: String,   // Data type is String.
@@ -30,7 +35,7 @@ const customersSchema = new Schema({
 
 // Creating a model from the schema. This model will represent the 'customers' collection in MongoDB.
 // The first argument is the name of the collection, and the second argument is the schema.
-const CustomersModel = mongoose.model('customers', customersSchema);
+const CustomersModel = mongoose.model('Customer', customersSchema);
 
 // Exporting the CustomersModel to be used in other parts of the application.
 module.exports = CustomersModel;
