@@ -5,6 +5,10 @@ const express = require("express"); // Express.js web framework
 const bodyParser = require("body-parser"); // Middleware for parsing JSON requests
 const path = require("path"); // Node.js path module for working with file and directory paths
 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const SECRET_KEY = "my_secret_key"; // Store in environment variables
+
 const {
   ValidationError,
   InvalidUserError,
@@ -59,24 +63,30 @@ app.post("/api/add_customer", async (req, res, next) => {
   const age = parseInt(data["age"]);
 
   try {
-    if (typeof data['name'] !== 'string' || !data['name'].trim()) {
-        throw new NameValidationError("Name must be a non-empty string.");
+    if (typeof data["name"] !== "string" || !data["name"].trim()) {
+      throw new NameValidationError("Name must be a non-empty string.");
     }
 
     if (age < 21) {
       throw new ValidationError("Customer Under required age limit");
     }
 
+    const hashedPassword = await bcrypt.hash(data["password"], 10); // Hash the password
+
     const customer = new Customers({
+      name: data["name"],
       user_name: data["user_name"],
       age: age,
-      password: data["password"],
+      password: hashedPassword, // Store hashed password
       email: data["email"],
     });
 
     await customer.save();
 
-    res.send("Customer added successfully");
+    // Generate JWT token
+    const token = jwt.sign({ user_name: customer.user_name }, SECRET_KEY, { expiresIn: "1h" });
+
+    res.json({ message: "Customer added successfully", token });
   } catch (error) {
     next(error);
   }
